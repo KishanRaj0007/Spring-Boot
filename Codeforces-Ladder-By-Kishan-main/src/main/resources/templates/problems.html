@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Codeforces Ladder - Category</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome for icons -->
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4 text-center">Codeforces Ladder - Problem <span th:text="${category}"></span></h1>
+        <a href="/" class="btn btn-secondary mb-4">Back to Main Page</a>
+
+        <div class="text-center mb-4">
+            <h3>Problems Solved: <span th:text="${solvedCount}"></span> / <span th:text="${totalCount}"></span></h3>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Problem</th>
+                    <th>Solved</th>
+                    <th class="mark-review-col">Mark for Review</th>
+                    <th>Mark as Solved</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="problem : ${problems}" th:classappend="${problem.solved} ? 'solved-row' : ''">
+                    <td>
+                        <a th:href="${problem.url}" th:text="${problem.name}"></a>
+                    </td>
+                    <td th:text="${problem.solved} ? 'Solved' : 'Not Solved'"></td>
+                    <td class="mark-review-col">
+                        <div class="review-indicator" th:classappend="${problem.reviewed} ? 'reviewed' : ''"></div>
+                    </td>
+                    <td>
+                        <form th:action="@{'/solve/' + ${category} + '/' + ${problem.id}}" method="post">
+                            <button type="submit" class="btn btn-success">Mark as Solved</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.review-indicator').forEach(indicator => {
+                indicator.addEventListener('click', function() {
+                    this.classList.toggle('reviewed');
+
+                    // Get problem ID and update review status
+                    let row = this.closest('tr');
+                    let category = document.querySelector('h1 span').textContent.trim();
+                    let problemId = row.querySelector('a').textContent.split(' ')[1];
+
+                    // Submit review status via AJAX
+                    fetch(`/review/${category}/${problemId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({
+                            'reviewed': this.classList.contains('reviewed')
+                        }).toString()
+                    }).then(response => {
+                        if (response.ok) {
+                            // Handle response if needed
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
